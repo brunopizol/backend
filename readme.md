@@ -25,6 +25,12 @@ and deletion.
 
 ```
 
+### run migrations 
+```bash
+dotnet ef migrations add AddUserRole --project backend.Infrastructure\backend.Infrastructure.csproj --startup-project backend\backend.csproj
+dotnet ef database update --project backend.Infrastructure\backend.Infrastructure.csproj --startup-project backend\backend.csproj
+```
+
 ## Authentication
 
 Authentication is performed using JWT (JSON Web Token).
@@ -266,53 +272,7 @@ The application follows a layered architecture:
 
 
 
-### 🔹 Fluxo de Autenticação (Login)
-
-```
-User
- |
- | POST /login
- v
-API Controller
- |
- | Validate credentials
- v
-User Service
- |
- | Check password (hash)
- v
-JWT Generator
- |
- | Generate token
- v
-Response (Token + User Data)
-```
-
----
-
-### 🔹 Fluxo CRUD de Usuário
-
-```
-Request
-  |
-  v
-UsersController
-  |
-  v
-UserService
-  |
-  v
-UserRepository (EF Core)
-  |
-  v
-Database
-```
-
----
 
 
-### rodar migrations 
-```bash
-dotnet ef migrations add AddUserRole --project backend.Infrastructure\backend.Infrastructure.csproj --startup-project backend\backend.csproj
-dotnet ef database update --project backend.Infrastructure\backend.Infrastructure.csproj --startup-project backend\backend.csproj
-```
+
+
