@@ -1,6 +1,8 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 namespace backend.Application.Services
@@ -30,7 +32,7 @@ namespace backend.Application.Services
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
                 new Claim(ClaimTypes.Email, email),
                 new Claim(ClaimTypes.Name, name),
-                new Claim(ClaimTypes.Role, role)
+                new Claim(ClaimTypes.Role, string.IsNullOrWhiteSpace(role) ? "User" : role)
 
             };
 

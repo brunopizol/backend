@@ -12,18 +12,20 @@ namespace backend.Domain.Entities
         public string Name { get; private set; }
         public string Email { get; private set; }
         public string Password { get; private set; }
+        public string Role { get; set; } // Admin, User
         public DateTime CreatedAt { get; private set; }
         public DateTime? UpdatedAt { get; private set; }
         public bool IsActive { get; private set; }
 
         protected User() { }
 
-        public User(string name, string email, string password)
+        public User(string name, string email, string password, string role)
         {
             Id = Guid.NewGuid();
             Name = name;
             Email = email;
             Password = password;
+            Role = role;
             CreatedAt = DateTime.UtcNow;
             IsActive = true;
 

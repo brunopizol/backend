@@ -48,6 +48,11 @@ namespace backend.Infrastructure.Data
                 entity.Property(e => e.Password)
                     .IsRequired()
                     .HasColumnName("password");
+    
+                entity.Property(e => e.Role)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnName("role");
 
                 entity.Property(e => e.CreatedAt)
                     .IsRequired()

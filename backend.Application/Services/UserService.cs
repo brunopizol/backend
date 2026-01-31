@@ -23,7 +23,7 @@ namespace backend.Application.Services
             if (await _repository.EmailExistsAsync(dto.Email))
                 throw new InvalidOperationException("Email already exists");
 
-            var user = new User(dto.Name, dto.Email, dto.Password);
+            var user = new User(dto.Name, dto.Email, dto.Password, "user");
             await _repository.AddAsync(user);
 
             return MapToDto(user);
@@ -68,6 +68,15 @@ namespace backend.Application.Services
             await _repository.DeleteAsync(id);
         }
 
+        public async Task<UserResponseDto> AuthenticateAsync(string email, string password)
+        {
+            var user = await _repository.GetByEmailAsync(email);
+            if (user == null || user.Password != password)
+                throw new UnauthorizedAccessException("Invalid email or password");
+
+            return MapToDto(user);
+        }
+
         private UserResponseDto MapToDto(User user)
         {
             return new UserResponseDto
@@ -76,6 +85,7 @@ namespace backend.Application.Services
                 Name = user.Name,
                 Email = user.Email,
                 CreatedAt = user.CreatedAt,
+                Role = user.Role,
                 UpdatedAt = user.UpdatedAt,
                 IsActive = user.IsActive
             };

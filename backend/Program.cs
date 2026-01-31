@@ -54,14 +54,8 @@ var secretKeyString = jwtSettings["SecretKey"];
 var issuer = jwtSettings["Issuer"];
 var audience = jwtSettings["Audience"];
 
-// ⬇️ ADICIONE ESTES LOGS
-Console.WriteLine($"🔑 Secret Key: {secretKeyString}");
-Console.WriteLine($"🔑 Tamanho da Secret Key: {secretKeyString?.Length}");
-Console.WriteLine($"🏢 Issuer: {issuer}");
-Console.WriteLine($"👥 Audience: {audience}");
 
 var secretKey = Encoding.UTF8.GetBytes(secretKeyString!);
-Console.WriteLine($"🔑 Secret Key (bytes): {secretKey.Length} bytes");
 
 if (string.IsNullOrEmpty(secretKeyString) || secretKeyString.Length < 32)
 {

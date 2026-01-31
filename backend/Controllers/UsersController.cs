@@ -24,7 +24,7 @@ namespace backend.Controllers
             try
             {
                 var user = await _userService.AuthenticateAsync(dto.Email, dto.Password);
-                var token = _jwtTokenService.GenerateToken(user.Id, user.Email, user.Name);
+                var token = _jwtTokenService.GenerateToken(user.Id, user.Email, user.Name, user.Role);
 
                 return Ok(new AuthResponseDto
                 {
@@ -53,7 +53,7 @@ namespace backend.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetAll()
         {
             var users = await _userService.GetAllAsync();
