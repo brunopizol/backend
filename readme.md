@@ -1,77 +1,140 @@
 ﻿
 
-## 1️⃣ README — *User Management API*
+# Enterprise Auth & User Management API
 
+Enterprise-ready authentication and user management module built with .NET, Clean Architecture and JWT security.
 
-# User Management API
+This API provides:
 
-This application provides a RESTful API for user management and authentication.
-It supports user registration, login with JWT authentication, user listing, update,
-and deletion.
+- Enterprise authentication
+- Device-aware login
+- TOTP/MFA support
+- User security tracking
+- Audit logging
+- JWT authentication
+- User lifecycle management
+- Clean architecture modular design
+
+---
 
 ## Features
 
-- User authentication using JWT
-- User CRUD operations
-- Role-based user structure
-- Secure password handling
-- RESTful API design
+- JWT Access Token authentication
+- Device-based authentication
+- MFA/TOTP support
+- Audit logging system
+- UserSecurity lockout tracking
+- Enterprise auth module isolated
+- Role-based authorization
+- Clean Architecture
+- Docker ready
+- PostgreSQL ready
+
+---
 
 ## Base URL
 
 ```
 
-[http://localhost:5000](http://localhost:5000)
+[http://localhost:5022](http://localhost:5022)
 
 ```
 
-### run migrations 
+Swagger:
+
+```
+
+[http://localhost:5022/swagger](http://localhost:5022/swagger)
+
+````
+
+---
+
+## Database Migration
+
 ```bash
-dotnet ef migrations add AddUserRole --project backend.Infrastructure\backend.Infrastructure.csproj --startup-project backend\backend.csproj
-dotnet ef database update --project backend.Infrastructure\backend.Infrastructure.csproj --startup-project backend\backend.csproj
-```
+dotnet ef migrations add InitAuthModule \
+ --project backend.Infrastructure \
+ --startup-project backend
+
+dotnet ef database update \
+ --project backend.Infrastructure \
+ --startup-project backend
+````
+
+---
 
 ## Authentication
 
-Authentication is performed using JWT (JSON Web Token).
-
-After a successful login, the token must be sent in the `Authorization` header:
+JWT Bearer Token:
 
 ```
+Authorization: Bearer <access_token>
+```
 
-Authorization: Bearer <token>
+---
 
-````
+# Endpoints
 
-## Endpoints
+---
+
+## AUTH
+
+---
 
 ### Login
 
-**POST** `/api/Users/login`
+POST `/api/auth/login`
 
-Authenticates a user and returns a JWT token.
+Enterprise login with device tracking and optional TOTP.
 
-**Request Body**
+#### Request
+
 ```json
 {
   "email": "user@email.com",
-  "password": "password123"
+  "password": "123",
+  "totpCode": "123456",
+  "deviceId": "device-001"
 }
-````
+```
 
-**Response**
+#### Response
 
 ```json
 {
-  "success": true,
-  "message": "Login successful",
-  "token": "jwt-token",
+  "accessToken": "jwt",
+  "expiresIn": 3600,
   "user": {
     "id": "guid",
-    "name": "John Doe",
+    "name": "Bruno",
     "email": "user@email.com",
-    "role": "admin"
+    "role": "User"
   }
+}
+```
+
+---
+
+## USERS
+
+---
+
+### Create User
+
+POST `/api/Users`
+
+Creates:
+
+* User
+* UserSecurity
+* AuditLog entry
+
+```json
+{
+  "name": "Bruno",
+  "email": "bruno@email.com",
+  "password": "123"
 }
 ```
 
@@ -79,46 +142,26 @@ Authenticates a user and returns a JWT token.
 
 ### Get All Users
 
-**GET** `/api/Users`
+GET `/api/Users`
 
-Requires authentication.
-
----
-
-### Create User
-
-**POST** `/api/Users`
-
-Creates a new user.
-
-**Request Body**
-
-```json
-{
-  "name": "John Doe",
-  "email": "user@email.com",
-  "password": "password123"
-}
-```
+Requires JWT.
 
 ---
 
-### Get User By ID
+### Get User By Id
 
-**GET** `/api/Users/{id}`
+GET `/api/Users/{id}`
 
 ---
 
 ### Update User
 
-**PUT** `/api/Users/{id}`
-
-**Request Body**
+PUT `/api/Users/{id}`
 
 ```json
 {
-  "name": "New Name",
-  "email": "new@email.com"
+  "name": "Updated Name",
+  "email": "updated@email.com"
 }
 ```
 
@@ -126,72 +169,142 @@ Creates a new user.
 
 ### Delete User
 
-**DELETE** `/api/Users/{id}`
+DELETE `/api/Users/{id}`
 
 ---
 
-## Schemas
+# Domain Entities
 
-### AuthResponseDto
+---
 
-* success: boolean
-* message: string
-* token: string
-* user: UserResponseDto
+## User
 
-### CreateUserDto
+| Field        | Type   |
+| ------------ | ------ |
+| Id           | Guid   |
+| Name         | string |
+| Email        | string |
+| PasswordHash | string |
+| Role         | string |
 
-* name: string
-* email: string
-* password: string
+---
 
-### LoginDto
+## UserSecurity
 
-* email: string
-* password: string
+| Field            | Type      |
+| ---------------- | --------- |
+| UserId           | Guid      |
+| FailedLoginCount | int       |
+| LockoutEnd       | DateTime? |
+| MfaEnabled       | bool      |
+| TOTPSecret       | string?   |
 
-### UpdateUserDto
+---
 
-* name: string
-* email: string
+## AuditLog
 
-### UserResponseDto
+| Field        | Type     |
+| ------------ | -------- |
+| Id           | Guid     |
+| UserId       | Guid?    |
+| Event        | string   |
+| Ip           | string   |
+| DeviceId     | string   |
+| MetadataJson | string?  |
+| CreatedAt    | DateTime |
 
-* id: string
-* name: string
-* email: string
-* role: string
-* createdAt: datetime
-* updatedAt: datetime
+---
 
-## Technologies
+# DTO Schemas
 
-* .NET
+---
+
+## CreateUserDto
+
+```json
+{
+  "name": "string",
+  "email": "string",
+  "password": "string"
+}
+```
+
+---
+
+## LoginRequest
+
+```json
+{
+  "email": "string",
+  "password": "string",
+  "totpCode": "string",
+  "deviceId": "string"
+}
+```
+
+---
+
+## UserResponseDto
+
+```json
+{
+  "id": "guid",
+  "name": "string",
+  "email": "string",
+  "role": "string"
+}
+```
+
+---
+
+# Technologies
+
+* .NET 8
+* ASP.NET Core
 * Entity Framework Core
-* JWT Authentication
-* SQL Server (or compatible relational database)
-
-## Architecture
-
-The application follows a layered architecture:
-
-* API (Controllers)
-* Application / Services
-* Infrastructure (Data, EF Core)
-* Domain (Entities, Rules)
-
-
+* PostgreSQL
+* JWT Bearer Authentication
+* Docker
+* Clean Architecture
 
 ---
 
-## 2️⃣ Postman Collection (JSON)
+# Architecture
 
-👉 **Pode copiar e importar direto no Postman**
+```
+backend.API
+backend.Application
+backend.Domain
+backend.Infrastructure
+```
+
+### Layers
+
+* Controllers → HTTP Layer
+* Application → Services / Use Cases
+* Domain → Entities / Rules
+* Infrastructure → EF Core / Persistence / External
+
+---
+
+# Security Model
+
+* Password Hashing
+* JWT Access Tokens
+* MFA Support
+* Login Lockout
+* Device Tracking
+* Audit Logging
+* Role Authorization
+
+---
+
+# Postman Collection
 
 ```json
 {
   "info": {
-    "name": "User Management API",
+    "name": "Enterprise Auth API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -199,11 +312,36 @@ The application follows a layered architecture:
       "name": "Login",
       "request": {
         "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "url": { "raw": "{{baseUrl}}/api/Users/login", "host": ["{{baseUrl}}"], "path": ["api", "Users", "login"] },
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api","auth","login"]
+        },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"email\": \"user@email.com\",\n  \"password\": \"password123\"\n}"
+          "raw": "{\n  \"email\":\"user@email.com\",\n  \"password\":\"123\",\n  \"totpCode\":\"\",\n  \"deviceId\":\"device-001\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Create User",
+      "request": {
+        "method": "POST",
+        "header":[
+          {"key":"Content-Type","value":"application/json"},
+          {"key":"Authorization","value":"Bearer {{token}}"}
+        ],
+        "url":{
+          "raw":"{{baseUrl}}/api/Users",
+          "host":["{{baseUrl}}"],
+          "path":["api","Users"]
+        },
+        "body":{
+          "mode":"raw",
+          "raw":"{\n \"name\":\"Bruno\",\n \"email\":\"bruno@email.com\",\n \"password\":\"123\"\n}"
         }
       }
     },
@@ -211,68 +349,24 @@ The application follows a layered architecture:
       "name": "Get Users",
       "request": {
         "method": "GET",
-        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-        "url": { "raw": "{{baseUrl}}/api/Users", "host": ["{{baseUrl}}"], "path": ["api", "Users"] }
-      }
-    },
-    {
-      "name": "Create User",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "url": { "raw": "{{baseUrl}}/api/Users", "host": ["{{baseUrl}}"], "path": ["api", "Users"] },
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"user@email.com\",\n  \"password\": \"password123\"\n}"
-        }
-      }
-    },
-    {
-      "name": "Get User By Id",
-      "request": {
-        "method": "GET",
-        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-        "url": { "raw": "{{baseUrl}}/api/Users/{{id}}", "host": ["{{baseUrl}}"], "path": ["api", "Users", "{{id}}"] }
-      }
-    },
-    {
-      "name": "Update User",
-      "request": {
-        "method": "PUT",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{token}}" }
+        "header":[
+          {"key":"Authorization","value":"Bearer {{token}}"}
         ],
-        "url": { "raw": "{{baseUrl}}/api/Users/{{id}}", "host": ["{{baseUrl}}"], "path": ["api", "Users", "{{id}}"] },
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"Updated Name\",\n  \"email\": \"updated@email.com\"\n}"
+        "url":{
+          "raw":"{{baseUrl}}/api/Users",
+          "host":["{{baseUrl}}"],
+          "path":["api","Users"]
         }
-      }
-    },
-    {
-      "name": "Delete User",
-      "request": {
-        "method": "DELETE",
-        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-        "url": { "raw": "{{baseUrl}}/api/Users/{{id}}", "host": ["{{baseUrl}}"], "path": ["api", "Users", "{{id}}"] }
       }
     }
   ],
-  "variable": [
-    { "key": "baseUrl", "value": "http://localhost:5000" },
-    { "key": "token", "value": "" },
-    { "key": "id", "value": "" }
+  "variable":[
+    {"key":"baseUrl","value":"http://localhost:5022"},
+    {"key":"token","value":""}
   ]
 }
-````
+```
 
 ---
-
-
-
-
-
-
 
 
