@@ -14,7 +14,6 @@ namespace backend.Application.Services
         Task<IEnumerable<UserResponseDto>> GetAllAsync();
         Task<UserResponseDto> UpdateAsync(Guid id, UpdateUserDto dto);
         Task DeleteAsync(Guid id);
-        Task<UserResponseDto> AuthenticateAsync(string email, string password);
 
     }
 

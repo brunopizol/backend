@@ -1,9 +1,13 @@
-﻿using backend.Application.Services;
+﻿using backend.Application;
+using backend.Application.Services;
+using backend.Domain.Entities;
 using backend.Domain.Interfaces;
 using backend.Infrastructure.Data;
 using backend.Infrastructure.Repositories;
+using backend.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 using System.Text;
@@ -47,10 +51,27 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IRateLimiter, MemoryRateLimiter>();
+builder.Services.AddScoped<IUserSecurityRepository, UserSecurityRepository>();
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped<IAuditService, AuditService>();
 
+builder.Services.AddMemoryCache();
+
+builder.Services.Configure<PasswordOptions>(
+    builder.Configuration.GetSection("Password"));
+
+builder.Services.AddSingleton<backend.Domain.Interfaces.IPasswordHasher>(sp =>
+{
+    var options = sp.GetRequiredService<IOptions<PasswordOptions>>().Value;
+    return new Argon2PasswordHasher(options);
+});
 // JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var secretKeyString = jwtSettings["SecretKey"];
+var secretKeyString = jwtSettings["SigningKey"];
 var issuer = jwtSettings["Issuer"];
 var audience = jwtSettings["Audience"];
 

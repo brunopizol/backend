@@ -12,22 +12,61 @@ namespace backend.Application.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _repository;
+        private readonly IAuthService _authService;
+        private readonly IPasswordHasher _passwordHasher;
+        private readonly IUserSecurityRepository _securityRepo;
+        private readonly IAuditService _audit;
 
-        public UserService(IUserRepository repository)
+        public UserService(
+            IUserRepository repository,
+            IPasswordHasher passwordHasher,
+            IAuthService authService,
+            IUserSecurityRepository securityRepo,
+            IAuditService audit)
         {
             _repository = repository;
+            _passwordHasher = passwordHasher;
+            _authService = authService;
+            _securityRepo = securityRepo;
+            _audit = audit;
         }
+
 
         public async Task<UserResponseDto> CreateAsync(CreateUserDto dto)
         {
             if (await _repository.EmailExistsAsync(dto.Email))
                 throw new InvalidOperationException("Email already exists");
 
-            var user = new User(dto.Name, dto.Email, dto.Password, "user");
+            var hash = _passwordHasher.Hash(dto.Password);
+
+            var user = new User(dto.Name, dto.Email, hash, "User");
+
             await _repository.AddAsync(user);
+
+            var security = new UserSecurity
+            {
+                UserId = user.Id,
+                FailedLoginCount = 0,
+                LockoutEnd = null,
+                MfaEnabled = false,
+                TOTPSecret = null
+            };
+
+            await _securityRepo.AddAsync(security);
+
+            await _audit.LogAsync(new AuditLog
+            {
+                UserId = user.Id,
+                Event = "user.created",
+                Ip = "system",
+                DeviceId = "system"
+            });
 
             return MapToDto(user);
         }
+
+
+
 
         public async Task<UserResponseDto> GetByIdAsync(Guid id)
         {
@@ -66,15 +105,6 @@ namespace backend.Application.Services
                 throw new KeyNotFoundException("User not found");
 
             await _repository.DeleteAsync(id);
-        }
-
-        public async Task<UserResponseDto> AuthenticateAsync(string email, string password)
-        {
-            var user = await _repository.GetByEmailAsync(email);
-            if (user == null || user.Password != password)
-                throw new UnauthorizedAccessException("Invalid email or password");
-
-            return MapToDto(user);
         }
 
         private UserResponseDto MapToDto(User user)

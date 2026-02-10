@@ -18,39 +18,6 @@ namespace backend.Controllers
             _jwtTokenService = jwtTokenService;
         }
 
-        [HttpPost("login")]
-        public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginDto dto)
-        {
-            try
-            {
-                var user = await _userService.AuthenticateAsync(dto.Email, dto.Password);
-                var token = _jwtTokenService.GenerateToken(user.Id, user.Email, user.Name, user.Role);
-
-                return Ok(new AuthResponseDto
-                {
-                    Success = true,
-                    Message = "Login realizado com sucesso",
-                    Token = token,
-                    User = user
-                });
-            }
-            catch (KeyNotFoundException)
-            {
-                return Unauthorized(new AuthResponseDto
-                {
-                    Success = false,
-                    Message = "Email ou senha inválidos"
-                });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return Unauthorized(new AuthResponseDto
-                {
-                    Success = false,
-                    Message = ex.Message
-                });
-            }
-        }
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
@@ -76,7 +43,6 @@ namespace backend.Controllers
         }
 
         [HttpPost]
-        [Authorize]
         public async Task<ActionResult<UserResponseDto>> Create([FromBody] CreateUserDto dto)
         {
             try

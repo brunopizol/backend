@@ -18,6 +18,9 @@ namespace backend.Infrastructure.Data
         }
 
         public Microsoft.EntityFrameworkCore.DbSet<User> Users { get; set; }
+        public DbSet<UserSecurity> UserSecurities { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -64,7 +67,15 @@ namespace backend.Infrastructure.Data
                 entity.Property(e => e.IsActive)
                     .IsRequired()
                     .HasColumnName("is_active");
+
             });
+            modelBuilder.Entity<UserSecurity>()
+            .HasKey(x => x.UserId);
+            modelBuilder.Entity<RefreshToken>()
+            .HasIndex(x => x.TokenHash)
+            .IsUnique();
+            modelBuilder.Entity<RefreshToken>()
+            .HasIndex(x => new { x.UserId, x.DeviceId });
         }
     }
 }
